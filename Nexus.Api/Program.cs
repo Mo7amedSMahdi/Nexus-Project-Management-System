@@ -1,6 +1,8 @@
 using System.Reflection;
 using Nexus.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Nexus.Core.Interfaces.Projects;
+using Nexus.Infrastructure.Repositories.Projects;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<NexusDbContext>(options => options.UseNpgsql(connectionString));
+
+// --- Dependency Injection Registration ---
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+// -----------------------------------------
 
 // Add services to the container.
 builder.Services.AddControllers();
