@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Nexus.Api/Nexus.Api.csproj" />
+  <Project Path="Nexus.Core/Nexus.Core.csproj" />
+  <Project Path="Nexus.Infrastructure/Nexus.Infrastructure.csproj" />
+</Solution>
