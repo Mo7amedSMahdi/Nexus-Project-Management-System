@@ -34,6 +34,8 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+app.MapControllers();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
