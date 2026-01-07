@@ -3,7 +3,7 @@ using Nexus.Core.Enums.Tickets;
 
 namespace Nexus.Core.Entities.Tickets;
 
-public class Ticket(string title, int projectId,string description = null, TicketStatus status = TicketStatus.Todo, TicketPriority priority = TicketPriority.Medium) : BaseEntity
+public class Ticket(string title, int projectId, TicketPriority priority = TicketPriority.Medium, string description = null, TicketStatus status = TicketStatus.Todo) : BaseEntity
 {
     public string Title { get; set; } = title;
     public string? Description { get; set; } = description;
