@@ -19,9 +19,9 @@ namespace Nexus.Infrastructure.Data
             // 2. Create Sample Projects
             var projects = new List<Project>
             {
-                new Project("Phoenix Project", "PHX", "Rebuilding the legacy banking system from scratch."),
-                new Project("Project Manhattan", "MAN", "Top secret AI research initiative."),
-                new Project("Apollo 11", "APL", "The moon landing mission control software.")
+                new Project("Phoenix Project", "PHX",Guid.NewGuid().ToString(), "Rebuilding the legacy banking system from scratch."),
+                new Project("Project Manhattan", "MAN",Guid.NewGuid().ToString(), "Top secret AI research initiative."),
+                new Project("Apollo 11", "APL",Guid.NewGuid().ToString(), "The moon landing mission control software.")
             };
 
             await context.Projects.AddRangeAsync(projects);

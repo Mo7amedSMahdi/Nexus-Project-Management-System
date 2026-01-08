@@ -10,7 +10,7 @@ public class ProjectService(IProjectRepository repository): IProjectService
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request)
     {
         // Convert DTO to Domain Entity
-        var project = new Project(request.Name, request.Code, request.Description);
+        var project = new Project(request.Name, request.Code, "temp-owner-id",request.Description);
         
         // Save to Database via Repository
         await repository.AddAsync(project);
@@ -21,6 +21,7 @@ public class ProjectService(IProjectRepository repository): IProjectService
             Id = project.Id,
             Name = project.Name,
             Code = project.Code,
+            OwnerId = project.OwnerId,
             Description = project.Description,
             CreatedAt = project.CreatedAt
         };
@@ -36,6 +37,7 @@ public class ProjectService(IProjectRepository repository): IProjectService
         return projects.Select(p => new ProjectResponse
         {
             Id = p.Id,
+            OwnerId = p.OwnerId,
             Name = p.Name,
             Code = p.Code,
             Description = p.Description,
@@ -56,6 +58,7 @@ public class ProjectService(IProjectRepository repository): IProjectService
         return new ProjectResponse
         {
             Id = project.Id,
+            OwnerId = project.OwnerId,
             Name = project.Name,
             Code = project.Code,
             Description = project.Description,

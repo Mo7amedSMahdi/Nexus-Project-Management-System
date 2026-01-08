@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nexus.Core.Interfaces.Projects;
 using Nexus.Core.DTOs.Projects;
@@ -5,6 +6,7 @@ using Nexus.Core.DTOs.Projects;
 namespace Nexus.Api.Controllers.Projects;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class ProjectsController(IProjectService projectService) : ControllerBase
 {
@@ -13,6 +15,7 @@ public class ProjectsController(IProjectService projectService) : ControllerBase
     /// </summary>
     // GET: api/projects
     [HttpGet]
+    
     public async Task<ActionResult<List<ProjectResponse>>> GetAll()
     {
         var projects = await projectService.GetAllAsync();

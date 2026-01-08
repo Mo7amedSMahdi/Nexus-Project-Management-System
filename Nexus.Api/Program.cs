@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Identity;
 using Nexus.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Nexus.Core.Entities.Identity;
 using Nexus.Core.Interfaces.Identity;
 //projects
 using Nexus.Core.Interfaces.Projects;
-using Nexus.Core.Interfaces.Tickets;
 using Nexus.Infrastructure.Repositories.Projects;
 using Nexus.Core.Services.Projects;
 // tickets
@@ -70,6 +70,33 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new() { Title = "Nexus.Api", Version = "v1" });
+    
+    // add Jwt requirements in swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
+    });
+    
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new List<string>() // <--- CHANGED: Must be a List, not an Array
+        }
+    });
+    
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(
         Path.Combine(AppContext.BaseDirectory, xmlFilename)
@@ -79,6 +106,9 @@ builder.Services.AddSwaggerGen(options =>
 
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
