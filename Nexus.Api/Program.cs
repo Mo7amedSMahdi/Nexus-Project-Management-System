@@ -1,6 +1,12 @@
 using System.Reflection;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Nexus.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Nexus.Core.Entities.Identity;
+using Nexus.Core.Interfaces.Identity;
 //projects
 using Nexus.Core.Interfaces.Projects;
 using Nexus.Core.Interfaces.Tickets;
@@ -8,6 +14,7 @@ using Nexus.Infrastructure.Repositories.Projects;
 using Nexus.Core.Services.Projects;
 // tickets
 using Nexus.Core.Interfaces.Tickets;
+using Nexus.Core.Services.Identity;
 using Nexus.Core.Services.Tickets;
 using Nexus.Infrastructure.Repositories.Tickets;
 
@@ -18,6 +25,34 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<NexusDbContext>(options => options.UseNpgsql(connectionString));
 
+// Register Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<NexusDbContext>()
+    .AddDefaultTokenProviders();
+
+// Configure JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidateAudience = true,
+        ValidAudience = jwtSettings["Audience"],
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
 // --- Dependency Injection Registration ---
 
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -26,6 +61,7 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 // --- Register Service ---
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<IIdentityService, IdentityService>();
 // -----------------------------------------
 
 // Add services to the container.
@@ -39,6 +75,8 @@ builder.Services.AddSwaggerGen(options =>
         Path.Combine(AppContext.BaseDirectory, xmlFilename)
     );
 });
+
+
 
 var app = builder.Build();
 
