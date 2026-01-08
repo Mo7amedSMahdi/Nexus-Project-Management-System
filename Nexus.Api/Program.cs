@@ -62,6 +62,8 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+
+builder.Services.AddHttpContextAccessor();
 // -----------------------------------------
 
 // Add services to the container.

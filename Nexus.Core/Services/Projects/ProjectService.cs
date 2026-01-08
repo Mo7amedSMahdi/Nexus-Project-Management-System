@@ -1,16 +1,22 @@
 using Nexus.Core.DTOs.Projects;
 using Nexus.Core.Entities.Projects;
 using Nexus.Core.Interfaces.Projects;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace Nexus.Core.Services.Projects;
 
-public class ProjectService(IProjectRepository repository): IProjectService
+public class ProjectService(IProjectRepository repository, IHttpContextAccessor _httpContextAccessor): IProjectService
 {
     // Create a new project
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request)
     {
+        // Get the current user ID from the HttpContext
+        var ownerId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
+        
         // Convert DTO to Domain Entity
-        var project = new Project(request.Name, request.Code, "temp-owner-id",request.Description);
+        var project = new Project(request.Name, request.Code, ownerId, request.Description);
         
         // Save to Database via Repository
         await repository.AddAsync(project);
