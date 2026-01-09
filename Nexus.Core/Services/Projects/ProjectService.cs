@@ -55,7 +55,10 @@ public class ProjectService(IProjectRepository repository, IHttpContextAccessor 
     public async Task<ProjectResponse?> GetByIdAsync(int id)
     {
         // Get the project from the repository using the provided Id
-        var project = await repository.GetByIdAsync(id);
+        var ownerId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
+        
+        var project = await repository.GetByIdAsync(id, ownerId);
         
         // Return null if the project is not found
         if (project == null) return null;
