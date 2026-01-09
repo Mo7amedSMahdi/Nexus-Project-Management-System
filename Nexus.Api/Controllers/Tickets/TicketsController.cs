@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nexus.Core.DTOs.Tickets;
 using Nexus.Core.Interfaces.Tickets;
@@ -5,6 +6,7 @@ using Nexus.Core.Interfaces.Tickets;
 namespace Nexus.Api.Controllers.Tickets;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class TicketsController(ITicketService ticketService) : ControllerBase
 {
