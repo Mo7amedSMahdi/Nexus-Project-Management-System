@@ -9,9 +9,9 @@ namespace Nexus.Infrastructure.Repositories.Projects;
 public class ProjectRepository(NexusDbContext context) : IProjectRepository
 {
    // Find a project by id
-   public async Task<Project?> GetByIdAsync(int id,string ownerId)
+   public async Task<Project?> GetByIdAsync(int id)
    {
-      return await context.Projects.FirstOrDefaultAsync(p => p.Id == id && p.OwnerId == ownerId);
+      return await context.Projects.FindAsync(id);
    }
 
    // Return the list of projects

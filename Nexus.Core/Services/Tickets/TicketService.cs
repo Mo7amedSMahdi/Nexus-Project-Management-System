@@ -4,17 +4,20 @@ using Nexus.Core.DTOs.Tickets;
 using Nexus.Core.Interfaces.Tickets;
 using Nexus.Core.Entities.Tickets;
 using Nexus.Core.Interfaces.Projects;
+using Nexus.Core.Interfaces.Security;
 
 namespace Nexus.Core.Services.Tickets;
 
-public class TicketService(ITicketRepository ticketRepository,HttpContextAccessor httpContextAccessor,IProjectRepository projectRepository) : ITicketService
+public class TicketService(ITicketRepository ticketRepository,ICurrentUser currentUser,IPermissionService permissionService,IProjectRepository projectRepository) : ITicketService
 {
     public async Task<List<TicketResponse>> GetTicketsByProjectIdAsync(int projectId)
     {
-        var userId = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(userId == null) throw new UnauthorizedAccessException("User not authenticated");
-        var project = await projectRepository.GetByIdAsync(projectId, userId);
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
+        
+        var project = await projectRepository.GetByIdAsync(projectId);
         if(project == null) throw new Exception("Project not found");
+        
+        if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
         
         var tickets = await ticketRepository.GetByProjectIdAsync(projectId);
         return tickets.Select(MapToResponse).ToList();
@@ -22,11 +25,12 @@ public class TicketService(ITicketRepository ticketRepository,HttpContextAccesso
 
     public async Task<TicketResponse> CreateAsync(CreateTicketRequest request)
     {
-        var userId = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(userId == null) throw new UnauthorizedAccessException("User not authenticated");
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
         
-        var project = await projectRepository.GetByIdAsync(request.ProjectId,userId);
+        var project = await projectRepository.GetByIdAsync(request.ProjectId);
         if(project == null) throw new Exception("Project not found");
+        
+        if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
         
         var ticket = new Ticket(title:request.Title, projectId:request.ProjectId, priority:request.Priority)
         {
@@ -38,14 +42,17 @@ public class TicketService(ITicketRepository ticketRepository,HttpContextAccesso
 
     public async Task<TicketResponse?> GetByIdAsync(int id)
     {
-        var userId = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(userId == null) throw new UnauthorizedAccessException("User not authenticated");
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
         
         var ticket = await ticketRepository.GetByIdAsync(id);
         if (ticket == null) return null;
-        var project = await projectRepository.GetByIdAsync(ticket.ProjectId,userId);
         
-        return project == null ? null : MapToResponse(ticket);
+        var project = await projectRepository.GetByIdAsync(ticket.ProjectId);
+        if(project == null) throw new Exception("Project not found");
+        
+        if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
+        
+        return MapToResponse(ticket);
     }
 
     private static TicketResponse MapToResponse(Ticket ticket)
