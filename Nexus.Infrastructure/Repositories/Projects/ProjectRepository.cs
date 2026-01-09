@@ -26,4 +26,9 @@ public class ProjectRepository(NexusDbContext context) : IProjectRepository
       await context.Projects.AddAsync(project);
       await context.SaveChangesAsync();
    }
+
+   public async Task<List<Project>> GetByUserIdAsync(string id)
+   {
+      return await context.Projects.Where(p => p.OwnerId == id).ToListAsync();
+   }
 }

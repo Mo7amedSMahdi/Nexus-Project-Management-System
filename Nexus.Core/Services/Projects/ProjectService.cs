@@ -6,13 +6,13 @@ using System.Security.Claims;
 
 namespace Nexus.Core.Services.Projects;
 
-public class ProjectService(IProjectRepository repository, IHttpContextAccessor _httpContextAccessor): IProjectService
+public class ProjectService(IProjectRepository repository, IHttpContextAccessor httpContextAccessor): IProjectService
 {
     // Create a new project
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request)
     {
         // Get the current user ID from the HttpContext
-        var ownerId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var ownerId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
         
         // Convert DTO to Domain Entity
@@ -70,5 +70,24 @@ public class ProjectService(IProjectRepository repository, IHttpContextAccessor 
             Description = project.Description,
             CreatedAt = project.CreatedAt
         };
+    }
+
+    public async Task<List<ProjectResponse>> GetByUserIdAsync()
+    {
+        // Get the current user ID from the HttpContext
+        var ownerId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
+        
+        var projects = await repository.GetByUserIdAsync(ownerId);
+        
+        return projects.Select(p => new ProjectResponse
+        {
+            Id = p.Id,
+            OwnerId = p.OwnerId,
+            Name = p.Name,
+            Code = p.Code,
+            Description = p.Description,
+            CreatedAt = p.CreatedAt
+        }).ToList();
     }
 }
