@@ -23,10 +23,22 @@ public class ProjectsController(IProjectService projectService) : ControllerBase
     }
 
     ///<summary>
+    /// Get project by ownerId
+    /// </summary>
+    // GET: api/projects/{ownerId}
+    [HttpGet($"MyProjects")]
+    public async Task<ActionResult<List<ProjectResponse>>> GetByUserId()
+    {
+        var projects = await projectService.GetByUserIdAsync();
+        return Ok(projects);
+        
+    }
+
+    ///<summary>
     /// Get project by Id
     /// </summary>
     // GET: api/projects/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<ProjectResponse?>> GetById(int id)
     {
         var project = await projectService.GetByIdAsync(id);
