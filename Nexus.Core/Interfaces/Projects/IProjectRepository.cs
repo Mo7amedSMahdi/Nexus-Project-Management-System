@@ -5,7 +5,7 @@ namespace Nexus.Core.Interfaces.Projects;
 
 public interface IProjectRepository
 {
-    Task<Project?> GetByIdAsync(int id,string ownerId);
+    Task<Project?> GetByIdAsync(int id);
     Task<List<Project>> GetAllAsync();
     Task AddAsync(Project project);
     

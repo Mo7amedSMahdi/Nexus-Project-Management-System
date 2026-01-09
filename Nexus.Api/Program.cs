@@ -10,11 +10,13 @@ using Nexus.Core.Entities.Identity;
 using Nexus.Core.Interfaces.Identity;
 //projects
 using Nexus.Core.Interfaces.Projects;
+using Nexus.Core.Interfaces.Security;
 using Nexus.Infrastructure.Repositories.Projects;
 using Nexus.Core.Services.Projects;
 // tickets
 using Nexus.Core.Interfaces.Tickets;
 using Nexus.Core.Services.Identity;
+using Nexus.Core.Services.Security;
 using Nexus.Core.Services.Tickets;
 using Nexus.Infrastructure.Repositories.Tickets;
 
@@ -62,6 +64,8 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 builder.Services.AddHttpContextAccessor();
 // -----------------------------------------

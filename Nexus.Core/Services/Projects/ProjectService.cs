@@ -3,20 +3,20 @@ using Nexus.Core.Entities.Projects;
 using Nexus.Core.Interfaces.Projects;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using Nexus.Core.Interfaces.Security;
 
 namespace Nexus.Core.Services.Projects;
 
-public class ProjectService(IProjectRepository repository, IHttpContextAccessor httpContextAccessor): IProjectService
+public class ProjectService(IProjectRepository repository,ICurrentUser currentUser,IPermissionService permissionService): IProjectService
 {
     // Create a new project
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request)
     {
         // Get the current user ID from the HttpContext
-        var ownerId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
         
         // Convert DTO to Domain Entity
-        var project = new Project(request.Name, request.Code, ownerId, request.Description);
+        var project = new Project(request.Name, request.Code, currentUser.UserId, request.Description);
         
         // Save to Database via Repository
         await repository.AddAsync(project);
@@ -36,6 +36,10 @@ public class ProjectService(IProjectRepository repository, IHttpContextAccessor 
     // Get all the projects
     public async Task<List<ProjectResponse>> GetAllAsync()
     {
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
+        
+        if (!permissionService.isAdmin(currentUser.UserId))
+            throw new UnauthorizedAccessException("User not authorized to access this resource");
         // Get the projects from the repository
         var projects = await repository.GetAllAsync();
         
@@ -54,14 +58,14 @@ public class ProjectService(IProjectRepository repository, IHttpContextAccessor 
     // Get a project by id
     public async Task<ProjectResponse?> GetByIdAsync(int id)
     {
-        // Get the project from the repository using the provided Id
-        var ownerId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
         
-        var project = await repository.GetByIdAsync(id, ownerId);
-        
+        var project = await repository.GetByIdAsync(id);
         // Return null if the project is not found
         if (project == null) return null;
+        
+        
+        if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
         
         // Convert Entity to DTO
         return new ProjectResponse
@@ -77,11 +81,9 @@ public class ProjectService(IProjectRepository repository, IHttpContextAccessor 
 
     public async Task<List<ProjectResponse>> GetByUserIdAsync()
     {
-        // Get the current user ID from the HttpContext
-        var ownerId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrEmpty(ownerId)) throw new UnauthorizedAccessException("User not authenticated");
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
         
-        var projects = await repository.GetByUserIdAsync(ownerId);
+        var projects = await repository.GetByUserIdAsync(currentUser.UserId);
         
         return projects.Select(p => new ProjectResponse
         {
