@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Nexus.Core.DTOs.Tickets;
 using Nexus.Core.Interfaces.Tickets;
 using Nexus.Core.Entities.Tickets;
+using Nexus.Core.Enums.Tickets;
 using Nexus.Core.Interfaces.Projects;
 using Nexus.Core.Interfaces.Security;
 
@@ -53,6 +54,29 @@ public class TicketService(ITicketRepository ticketRepository,ICurrentUser curre
         if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
         
         return MapToResponse(ticket);
+    }
+
+    public async Task<bool> UpdateStatusAsync(int ticketID, string status)
+    {
+        if(!permissionService.IsAuthenticated()) throw new UnauthorizedAccessException("User not authenticated");
+        
+        var ticket = await ticketRepository.GetByIdAsync(ticketID);
+        if (ticket == null) return false;
+        
+        var project = await projectRepository.GetByIdAsync(ticket.ProjectId);
+        if(project == null) throw new Exception("Project not found");
+        
+        if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
+        
+        // Update the ticket status 
+        if (!Enum.TryParse<TicketStatus>(status, true, out var parsedStatus))
+        {
+            return false; // Invalid status string provided
+        }
+        ticket.Status = parsedStatus;
+        await ticketRepository.UpdateAsync(ticket);
+        
+        return true;
     }
 
     private static TicketResponse MapToResponse(Ticket ticket)

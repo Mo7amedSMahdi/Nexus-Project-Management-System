@@ -22,4 +22,13 @@ public class TicketRepository(NexusDbContext context) : ITicketRepository
         await context.Tickets.AddAsync(ticket);
         await context.SaveChangesAsync();
     }
+
+    public async Task UpdateAsync(Ticket ticket)
+    {
+        var ticketToUpdate = await context.Tickets.FindAsync(ticket.Id);
+        if (ticketToUpdate == null) throw new Exception("Ticket not found");
+        
+        context.Tickets.Update(ticketToUpdate);
+        await context.SaveChangesAsync();
+    }
 }
