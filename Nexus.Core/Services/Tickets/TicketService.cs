@@ -33,7 +33,7 @@ public class TicketService(ITicketRepository ticketRepository,ICurrentUser curre
         
         if(!permissionService.CanAccessProject(currentUser.UserId,project)) throw new UnauthorizedAccessException("User not authorized to access this project");
         
-        var ticket = new Ticket(title:request.Title, projectId:request.ProjectId, priority:request.Priority)
+        var ticket = new Ticket(title:request.Title, projectId:request.ProjectId, priority:request.Priority, status:request.Status)
         {
             Description = request.Description
         };
